@@ -1,7 +1,7 @@
 # Content Warning
 J'ai codé ça en une soirée et vraiment n'importe comment. Si ce message est encore là, c'est que je n'ai pas encore pris le temps de revenir dessus. Bisous.
 
-# File Explorer avec intégration Plex et Transmission
+# Movie Explorer avec intégration Plex et Transmission
 
 Un explorateur de fichiers web avec gestion des liens symboliques pour Plex et intégration de Transmission. Permet de gérer facilement vos fichiers téléchargés et leur organisation dans votre bibliothèque Plex.
 
@@ -32,7 +32,7 @@ Un explorateur de fichiers web avec gestion des liens symboliques pour Plex et i
 
 1. Clonez le dépôt :
     ```bash
-    bash git clone [url-du-repo] cd file-explorer
+    bash git clone [url-du-repo] cd movie-explorer
     ```
 
 2. Créez un environnement virtuel :
