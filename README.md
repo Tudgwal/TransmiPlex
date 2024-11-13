@@ -28,7 +28,7 @@ Un explorateur de fichiers web avec gestion des liens symboliques pour Plex et i
 - Transmission-daemon
 - Accès à un serveur Plex (optionnel)
 
-## 🛠️ Installation
+## 🛠️ Installation DEV
 
 1. Clonez le dépôt :
     ```bash
@@ -59,6 +59,83 @@ Un explorateur de fichiers web avec gestion des liens symboliques pour Plex et i
 6. Lancez le serveur :
     ```bash
     python manage.py runserver
+    ```
+
+## 🛠️ Installation PROD
+
+1. Clonez le dépôt :
+    ```bash
+    bash git clone [url-du-repo] cd movie-explorer
+    ```
+
+2. Créez un environnement virtuel :
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+
+3. Installez les dépendances :
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4. Créez un fichier `.env` à la racine du projet :
+    ```bash
+    cp .env.dist .env
+    ```
+
+5. Générez les fichiers statics :
+    ```bash
+    python manage.py collectstatic
+    ```
+
+6. Création du service Systemd dans `/etc/systemd/system/transmiplex.service` :
+    Pensez à changer les valeurs `PATH` &  
+    ```
+    [Unit]
+    Description=TransmiPlex Gunicorn Daemon
+    After=network.target
+
+    [Service]
+    User=www-data
+    Group=www-data
+    WorkingDirectory=/opt/transmiplex
+    Environment="PATH=/opt/transmiplex/venv/bin"
+    Environment="DJANGO_SETTINGS_MODULE=movie_explorer.settings"
+    ExecStart=/opt/transmiplex/movie-explorer/venv/bin/gunicorn \
+        --access-logfile /var/log/transmiplex/movie-explorer/access.log \
+        --error-logfile /var/log/transmiplex/movie-explorer/error.log \
+        --workers 3 \
+        --bind unix:/run/transmiplex.sock \
+        movie_explorer.wsgi:application
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+
+7. Créez les dossiers de logs :
+    ```bash
+    sudo mkdir /var/log/transmiplex/movie-explorer
+    sudo chown www-data:www-data /var/log/transmiplex/movie-explorer
+    ```
+
+8. Créez et activez la configuration du serveur web
+
+9. Démarrez le service :
+    ```bash
+    sudo systemctl start transmiplex
+    sudo systemctl enable transmiplex
+    ```
+
+10. Configuration des permission :
+    ```bash
+    # Permissions pour les dossiers
+    sudo chown -R www-data:www-data /opt/transmiplex
+    sudo chmod -R 755 /opt/transmiplex
+
+    # Permissions spéciales pour les dossiers qui nécessitent l'écriture
+    sudo chmod -R 775 /chemin/vers/vos/telechargements
+    sudo usermod -a -G transmission-daemon www-data
     ```
 
 ## ⚙️ Configuration
