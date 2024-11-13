@@ -1,0 +1,632 @@
+/* Variables CSS pour une meilleure maintenance */
+:root {
+  --primary-color: #2563eb;
+  --secondary-color: #1e40af;
+  --background-color: #f8fafc;
+  --text-color: #1e293b;
+  --border-color: #e2e8f0;
+  --hover-color: #f1f5f9;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --radius: 8px;
+}
+
+/* Reset et styles de base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
+/* Container principal */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  width: 100%;
+}
+
+/* En-tête */
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
+}
+
+/* Barre de recherche */
+.search-bar {
+  margin-bottom: 2rem;
+  background: white;
+  padding: 1rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.search-bar form {
+  display: flex;
+  gap: 10px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.search-bar input:focus {
+  border-color: var(--primary-color);
+}
+
+.search-bar button {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.search-bar button:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Table des fichiers */
+.file-list {
+  width: 100%;
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.file-list th,
+.file-list td {
+  padding: 1rem;
+  text-align: left;
+}
+
+.file-list th {
+  background-color: white;
+  font-weight: 600;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.file-list th a {
+  color: var(--text-color);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.file-list th a:hover {
+  color: var(--primary-color);
+}
+
+.file-list tr:not(:last-child) td {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.file-list tbody tr:hover {
+  background-color: var(--hover-color);
+}
+
+/* Styles communs pour tous les boutons */
+.actions button {
+  min-width: 130px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 4px; /* Marge horizontale entre les boutons */
+}
+
+/* Container pour les boutons */
+.actions {
+  display: flex;
+  flex-direction: row; /* Force l'alignement horizontal */
+  gap: 8px;
+  justify-content: flex-start;
+  align-items: center;
+  white-space: nowrap; /* Empêche le retour à la ligne */
+}
+
+/* Ajustement de la largeur de la colonne des actions */
+.file-list th:last-child,
+.file-list td:last-child {
+  min-width: 280px; /* Assez large pour contenir les deux boutons */
+  white-space: nowrap;
+}
+
+/* Le reste du CSS reste identique */
+.open-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.open-btn:hover {
+  background-color: #059669;
+}
+
+.download-btn {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.download-btn:hover {
+  background-color: var(--secondary-color);
+}
+
+.delete-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #dc2626;
+}
+
+/* Style pour le bouton Plex */
+.plex-btn {
+  background-color: #282A2D;
+  color: white;
+}
+
+.plex-btn:hover {
+  background-color: #1F2123;
+}
+
+.plex-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Styles pour le modal */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.modal-content {
+  position: relative;
+  background-color: white;
+  margin: 10% auto;
+  padding: 20px;
+  width: 90%;
+  max-width: 600px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.modal-close {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.form-group input[type="text"],
+.form-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+}
+
+.file-selector {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  padding: 10px;
+  border-radius: var(--radius);
+}
+
+.submit-btn {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background-color: var(--secondary-color);
+}
+
+.title-format-hint {
+  color: #6B7280;
+  font-size: 0.875rem;
+  margin-top: 4px;
+  opacity: 0.8;
+}
+
+.format-example {
+  font-size: 0.75rem;
+  margin-top: 2px;
+  color: #9CA3AF;
+  font-style: italic;
+}
+
+/* Ajout pour assurer la responsivité */
+@media (max-width: 768px) {
+  .file-list {
+      overflow-x: auto; /* Permet le défilement horizontal sur petits écrans */
+  }
+  
+  .file-list td, .file-list th {
+      min-width: auto;
+  }
+}
+
+/* Style pour le chemin actuel */
+.current-path {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.current-path a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.current-path a:hover {
+  text-decoration: underline;
+}
+
+/* Style pour le message de confirmation */
+.confirmation-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index: 1000;
+}
+
+/* Icônes de fichiers */
+.file-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .container {
+      padding: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .file-list {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+  }
+
+  .search-bar form {
+      flex-direction: column;
+  }
+
+  .search-bar button {
+      width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  h1 {
+      font-size: 1.5rem;
+  }
+
+  .file-list th,
+  .file-list td {
+      padding: 0.75rem;
+  }
+
+  .actions {
+      flex-direction: column;
+  }
+
+  .actions button {
+      width: 100%;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+      opacity: 0;
+      transform: translateY(10px);
+  }
+  to {
+      opacity: 1;
+      transform: translateY(0);
+  }
+}
+
+.file-list tbody tr {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Loading state */
+.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: #64748b;
+}
+
+/* Tooltips */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]:before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5rem;
+  background: #334155;
+  color: white;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+}
+
+[data-tooltip]:hover:before {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Style pour les erreurs de chargement */
+.size-error {
+  color: #ef4444;
+  font-style: italic;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--background-color);
+}
+
+.login-form {
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-form h2 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: var(--primary-color);
+}
+
+.error-message {
+  background-color: #fee2e2;
+  color: #dc2626;
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+}
+
+/* Ajoutez un bouton de déconnexion dans le style existant */
+.logout-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.logout-btn:hover {
+  background-color: #dc2626;
+}
+
+/* Styles pour les boutons d'option de suppression */
+.delete-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  width: 100%; /* Assure que le conteneur prend toute la largeur */
+}
+
+.delete-option-btn {
+  width: 100%; /* Force tous les boutons à prendre la même largeur */
+  padding: 1rem;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 1rem;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  min-height: 3rem; /* Hauteur minimale uniforme */
+  white-space: nowrap; /* Empêche le texte de passer à la ligne */
+}
+
+/* Style spécifique pour chaque type de bouton */
+.delete-option-btn.symlink {
+  background-color: #6366f1;
+  color: white;
+  flex-shrink: 0; /* Empêche le bouton de rétrécir */
+}
+
+.delete-option-btn.file {
+  background-color: #ef4444;
+  color: white;
+  flex-shrink: 0;
+}
+
+.delete-option-btn.both {
+  background-color: #7c3aed;
+  color: white;
+  flex-shrink: 0;
+}
+
+/* Effets de survol */
+.delete-option-btn.symlink:hover {
+  background-color: #4f46e5;
+}
+
+.delete-option-btn.file:hover {
+  background-color: #dc2626;
+}
+
+.delete-option-btn.both:hover {
+  background-color: #6d28d9;
+}
+
+/* Style pour le conteneur du modal */
+.modal-content {
+  min-width: 400px; /* Largeur minimale pour le modal */
+  max-width: 500px; /* Largeur maximale pour le modal */
+  width: 90%; /* Largeur responsive */
+}
+
+.cancel-btn {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 3rem; /* Même hauteur minimale que les autres boutons */
+}
+
+.cancel-btn:hover {
+  background-color: var(--border-color);
+}
+
+/* Style pour le bouton Plex désactivé */
+.plex-btn-disabled {
+  background-color: #9ca3af !important; /* Gris */
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  pointer-events: none; /* Désactive les interactions */
+}
+
+.plex-btn-disabled img {
+  opacity: 0.5; /* Grise l'icône */
+}
+
+.plex-btn-disabled:hover {
+  background-color: #9ca3af !important;
+}
+
+/* Tooltip personnalisé pour le bouton désactivé */
+.plex-btn-disabled::after {
+  content: "Déjà ajouté à Plex";
+  position: absolute;
+  background: #374151;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.plex-btn-disabled:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.plex-btn-disabled:active {
+  animation: shake 0.2s ease-in-out;
+}
+.warning-message {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.warning-message-danger {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}

@@ -1,0 +1,4 @@
+django==5.0
+python-dotenv==1.0.0
+django-cache-memoize==0.1.10
+transmission-rpc==4.1.4

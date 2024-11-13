@@ -1,0 +1,470 @@
+{% load static %}
+{% load explorer_tags %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorateur de fichiers</title>
+    <link rel="stylesheet" href="{% static 'explorer/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+    <a href="{% url 'explorer:logout' %}" class="logout-btn">Déconnexion</a>
+    <div class="container">
+        <h1>📂 Explorateur de fichiers</h1>
+
+        <div class="current-path">
+            📂 
+            <a href="?path=">Racine</a>
+            {% if current_path %}
+                {% with segments=current_path|split:'/' %}
+                    {% for segment in segments %}
+                        / <a href="?path={% for s in segments %}{% if forloop.counter0 <= forloop.parentloop.counter0 %}{{ s }}{% if not forloop.last %}/{% endif %}{% endif %}{% endfor %}">{{ segment }}</a>
+                    {% endfor %}
+                {% endwith %}
+            {% endif %}
+        </div>
+        
+        <div class="search-bar">
+            <form method="GET" action="">
+                <input 
+                    type="text" 
+                    name="search" 
+                    value="{{ search_query }}" 
+                    placeholder="Rechercher des fichiers..."
+                    aria-label="Rechercher"
+                >
+                <button type="submit">
+                    🔍 Rechercher
+                </button>
+            </form>
+        </div>
+
+        <table class="file-list">
+            <thead>
+                <tr>
+                    <th>
+                        <a href="?sort=name&direction={% if sort_by == 'name' and sort_direction == 'asc' %}desc{% else %}asc{% endif %}&search={{ search_query }}"
+                           data-tooltip="Trier par nom">
+                            Nom {% if sort_by == 'name' %}{% if sort_direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+                        </a>
+                    </th>
+                    <th>
+                        <a href="?sort=date&direction={% if sort_by == 'date' and sort_direction == 'asc' %}desc{% else %}asc{% endif %}&search={{ search_query }}"
+                           data-tooltip="Trier par date">
+                            Date de modification {% if sort_by == 'date' %}{% if sort_direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+                        </a>
+                    </th>
+                    <th>
+                        <a href="?sort=size&direction={% if sort_by == 'size' and sort_direction == 'asc' %}desc{% else %}asc{% endif %}&search={{ search_query }}"
+                           data-tooltip="Trier par taille">
+                            Taille {% if sort_by == 'size' %}{% if sort_direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+                        </a>
+                    </th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>
+                        <div class="file-icon">
+                            {% if item.is_dir %}📁{% else %}📄{% endif %}
+                            {{ item.name }}
+                        </div>
+                    </td>
+                    <td>{{ item.modified|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {% if item.is_dir %}
+                            <span class="size-loading" title="Calcul de la taille en cours...">
+                                {{ item.size|filesizeformat }}
+                            </span>
+                        {% else %}
+                            {{ item.size|filesizeformat }}
+                        {% endif %}
+                    </td>
+                    <td class="actions">
+                        {% if item.is_dir %}
+                            <button onclick="openDirectory('{{ item.name|escapejs }}')" 
+                                    class="open-btn" 
+                                    title="Ouvrir {{ item.name }}">
+                                <span>📂</span>
+                                <span>Ouvrir</span>
+                            </button>
+                        {% else %}
+                            <button onclick="downloadFile('{{ item.path|escapejs }}')" 
+                                    class="download-btn" 
+                                    title="Télécharger {{ item.name }}">
+                                <span>⬇️</span>
+                                <span>Télécharger</span>
+                            </button>
+                        {% endif %}
+                        <button onclick="openPlexForm('{{ item.path|escapejs }}', '{{ item.name|escapejs }}', {{ item.is_dir|yesno:'true,false' }})" 
+                                class="plex-btn {% if item.has_symlink %}plex-btn-disabled{% endif %}" 
+                                title="{% if item.has_symlink %}Déjà ajouté à Plex{% else %}Ajouter à Plex{% endif %}"
+                                {% if item.has_symlink %}disabled{% endif %}>
+                            <img src="{% static 'explorer/images/plex-logo.svg' %}" alt="Plex" class="plex-icon">
+                            <span>Plex</span>
+                        </button>
+                        <button onclick="deleteFile('{{ item.path|escapejs }}')" 
+                                class="delete-btn" 
+                                title="Supprimer {{ item.name }}">
+                            <span>🗑️</span>
+                            <span>Supprimer</span>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="empty-state">
+                        <p>Aucun fichier trouvé</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal pour le formulaire Plex -->
+    <div id="plexModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closePlexModal()">&times;</span>
+            <h2>Ajouter à Plex</h2>
+            <form id="plexForm" onsubmit="submitPlexForm(event)">
+                <input type="hidden" id="itemPath" name="itemPath">
+                <input type="hidden" id="isDirectory" name="isDirectory">
+
+                <div class="form-group">
+                    <label for="title">Titre</label>
+                    <input type="text" id="title" name="title" required>
+                    <div class="title-format-hint">
+                        Format: Titre (Année)
+                        <div class="format-example">
+                            Exemple: "Rocky Horror Picture Show (1975)"
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="type">Type</label>
+                    <select id="type" name="type" required>
+                        <option value="films">Film</option>
+                        <option value="series">Série</option>
+                        <option value="documentaires">Documentaire</option>
+                        <option value="livres">Livres</option>
+                        <option value="anime">Animes</option>
+                    </select>
+                </div>
+
+                <div id="fileSelector" class="form-group" style="display: none;">
+                    <label>Sélectionner les fichiers</label>
+                    <div class="file-selector" id="fileSelectorContent">
+                        <!-- Les fichiers seront ajoutés ici dynamiquement -->
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">Valider</button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Modal de suppression -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeDeleteModal()">&times;</span>
+            <h2>Supprimer</h2>
+            <div id="torrent-warning" class="warning-message" style="display: none;">
+                ⚠️ Le torrent associé sera également supprimé de Transmission
+            </div>
+            <div id="parent-warning" class="warning-message warning-message-danger" style="display: none;">
+                ⚠️ Cette action supprimera également le dossier parent à la racine et tout son contenu !
+            </div>
+            <div class="delete-options">
+                <div id="symlink-option" style="display: none;">
+                    <button onclick="performDelete('symlink')" class="delete-option-btn symlink">
+                        🔗 Supprimer uniquement le lien symbolique
+                    </button>
+                </div>
+                <button onclick="performDelete('file')" class="delete-option-btn file">
+                    📄 Supprimer le fichier original
+                </button>
+                <div id="symlink-option" style="display: none;">
+                    <button onclick="performDelete('both')" class="delete-option-btn both">
+                        🗑️ Tout supprimer (fichier et lien)
+                    </button>
+                </div>
+            </div>
+            <button onclick="closeDeleteModal()" class="cancel-btn">
+                Annuler
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function openPlexForm(path, name, isDirectory) {
+            const button = event.currentTarget;
+            if (button.classList.contains('plex-btn-disabled')) {
+                return;
+            }
+
+            document.getElementById('itemPath').value = path;
+            document.getElementById('isDirectory').value = isDirectory;
+
+            // Nettoyage et formatage du titre
+            let title = name.replace(/\.[^/.]+$/, ""); // Enlève l'extension
+
+            // Recherche d'une année existante
+            let yearMatch = title.match(/\((\d{4})\)/);
+            let year = yearMatch ? yearMatch[1] : "ANNÉE";
+
+            // Nettoyage du titre de base
+            title = title
+                .replace(/\(\d{4}\)/, "") // Enlève l'année si elle existe
+                .trim();
+
+            // Construction du nouveau titre
+            let formattedTitle = `${title} (${year})`;
+
+            document.getElementById('title').value = formattedTitle;
+
+            if (isDirectory) {
+                loadDirectoryFiles(path);
+                document.getElementById('fileSelector').style.display = 'block';
+            } else {
+                document.getElementById('fileSelector').style.display = 'none';
+            }
+
+            document.getElementById('plexModal').style.display = 'block';
+        }
+
+        // Fonction de validation simplifiée
+        function validateTitleFormat() {
+            const titleInput = document.getElementById('title');
+            const title = titleInput.value;
+
+            // Expression régulière pour valider le format
+            const formatRegex = /^.+\(\d{4}\)$/;
+
+            if (!formatRegex.test(title)) {
+                titleInput.setCustomValidity('Format incorrect. Utilisez: "Titre (Année)"');
+            } else {
+                titleInput.setCustomValidity('');
+            }
+        }
+
+        // Ajoutez ces écouteurs d'événements
+        document.addEventListener('DOMContentLoaded', function() {
+            const titleInput = document.getElementById('title');
+            titleInput.addEventListener('input', validateTitleFormat);
+            titleInput.addEventListener('blur', validateTitleFormat);
+        });
+
+        function closePlexModal() {
+            document.getElementById('plexModal').style.display = 'none';
+        }
+
+        async function loadDirectoryFiles(path) {
+            try {
+                const response = await fetch(`/list-files/?path=${encodeURIComponent(path)}`);
+                const files = await response.json();
+                
+                const container = document.getElementById('fileSelectorContent');
+                container.innerHTML = files.map(file => `
+                    <div>
+                        <input type="checkbox" name="selected_files" value="${file.path}" id="file_${file.path}">
+                        <label for="file_${file.path}">${file.name}</label>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Erreur lors du chargement des fichiers:', error);
+            }
+        }
+
+        async function submitPlexForm(event) {
+            event.preventDefault();
+    
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData);
+    
+            try {
+                const response = await fetch('/create-plex-link/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                    credentials: 'same-origin'  // Important pour le CSRF
+                });
+        
+                const result = await response.json();
+                if (result.success) {
+                    alert('Lien créé avec succès !');
+                    closePlexModal();
+                } else {
+                    alert('Erreur: ' + result.error);
+                }
+            } catch (error) {
+                alert('Erreur lors de la création du lien');
+                console.error('Erreur:', error);
+            }
+        }
+
+        // Fermer le modal si on clique en dehors
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('plexModal')) {
+                closePlexModal();
+            }
+        }
+    </script>
+
+    <script>
+        // Fonction pour obtenir le token CSRF
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Fonction pour ouvrir un dossier
+        function openDirectory(dirName) {
+            const currentPath = new URLSearchParams(window.location.search).get('path') || '';
+            const newPath = currentPath ? `${currentPath}/${dirName}` : dirName;
+            window.location.href = `?path=${encodeURIComponent(newPath)}`;
+        }
+
+        // Fonction pour télécharger un fichier
+        function downloadFile(path) {
+            window.location.href = `/download/${encodeURIComponent(path)}/`;
+        }
+
+        // Fonction pour supprimer un fichier/dossier
+        async function deleteFile(path) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/delete/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: `path=${encodeURIComponent(path)}`
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert(`Erreur: ${data.error}`);
+                }
+            } catch (error) {
+                alert('Une erreur est survenue lors de la suppression');
+                console.error('Erreur:', error);
+            }
+        }
+    </script>
+
+    <script>
+        let currentDeletePath = null;
+        let isRootItem = false;
+
+        function deleteFile(path) {
+            currentDeletePath = path;
+            isRootItem = path.split('/').length === 1;
+            const isSubItem = path.includes('/');
+    
+            // Afficher les avertissements appropriés
+            document.getElementById('torrent-warning').style.display = 
+                isRootItem ? 'block' : 'none';
+            document.getElementById('parent-warning').style.display = 
+                isSubItem ? 'block' : 'none';
+
+            // Vérifier l'existence d'un lien symbolique
+            fetch(`/check-symlink/?path=${encodeURIComponent(path)}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('symlink-option').style.display = 
+                        data.has_symlink ? 'block' : 'none';
+                    document.getElementById('deleteModal').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    document.getElementById('deleteModal').style.display = 'block';
+                });
+        }
+
+        async function performDelete(deleteType) {
+            if (!currentDeletePath) return;
+    
+            if (!isRootItem && deleteType !== 'symlink') {
+                if (!confirm('Cette action supprimera le dossier parent et tout son contenu. Êtes-vous sûr ?')) {
+                    return;
+                }
+            }
+
+            try {
+                const response = await fetch('/delete/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        path: currentDeletePath,
+                        delete_type: deleteType
+                    })
+                });
+
+                const data = await response.json();
+        
+                if (response.ok) {
+                    if (data.deleted_parent) {
+                        // Rediriger vers la racine si le dossier parent a été supprimé
+                        window.location.href = '/';
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    alert(`Erreur: ${data.error}`);
+                }
+            } catch (error) {
+                alert('Une erreur est survenue lors de la suppression');
+                console.error('Erreur:', error);
+            } finally {
+                closeDeleteModal();
+            }
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            currentDeletePath = null;
+        }
+
+        // Fermer le modal si on clique en dehors
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('deleteModal')) {
+                closeDeleteModal();
+            }
+            if (event.target == document.getElementById('plexModal')) {
+                closePlexModal();
+            }
+        }
+    </script>
+</body>
+</html>
