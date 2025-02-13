@@ -35,7 +35,7 @@ ALLOWED_HOSTS = [os.getenv('ALLOWED_HOSTS')]
 STATIC_URL = '/static/'
 STATIC_ROOT = os.getenv('STATICFILES')
 
-SECURE_SSL_REDIRECT = True  # Si vous utilisez HTTPS
+SECURE_SSL_REDIRECT = False  # Si vous utilisez HTTPS
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
