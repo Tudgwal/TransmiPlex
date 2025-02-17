@@ -23,7 +23,7 @@ Un explorateur de fichiers web avec gestion des liens symboliques pour Plex et i
 
 ## 📋 Prérequis
 
-- Python 3.8+
+- Python 3.12+
 - Django 5.0+
 - Transmission-daemon
 - Accès à un serveur Plex (optionnel)

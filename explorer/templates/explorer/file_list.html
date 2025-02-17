@@ -160,6 +160,10 @@
 
                 <div id="fileSelector" class="form-group" style="display: none;">
                     <label>Sélectionner les fichiers</label>
+                    <!-- ajouter un bouton pour tout selectionner ou tout désélectionner -->
+                    <div class="file-selector-header">
+                        <button type="button" id="selectAllFilesBtn" onclick="toggleSelectAllFiles()">Tout sélectionner</button>
+                    </div>
                     <div class="file-selector" id="fileSelectorContent">
                         <!-- Les fichiers seront ajoutés ici dynamiquement -->
                     </div>
@@ -204,6 +208,21 @@
     </div>
 
     <script>
+        // Fonction pour tout sélectionner ou tout désélectionner
+        function toggleSelectAllFiles() {
+            const selectAllBtn = document.getElementById('selectAllFilesBtn');
+            const checkboxes = document.querySelectorAll('input[name="selected_files"]');
+            const allChecked = [...checkboxes].every(checkbox => checkbox.checked);
+
+            if (allChecked) {
+                checkboxes.forEach(checkbox => checkbox.checked = false);
+                selectAllBtn.textContent = 'Tout sélectionner';
+            } else {
+                checkboxes.forEach(checkbox => checkbox.checked = true);
+                selectAllBtn.textContent = 'Tout désélectionner';
+            }
+        }
+
         function openPlexForm(path, name, isDirectory) {
             const button = event.currentTarget;
             if (button.classList.contains('plex-btn-disabled')) {
@@ -255,11 +274,28 @@
             }
         }
 
+        // Fonction pour vérifier si au moins un fichier est selectionner en cas de dossier
+        function validateFileSelection() {
+            const isDirectory = document.getElementById('isDirectory').value === 'true';
+            if (isDirectory) {
+                const selectedFiles = Array.from(document.querySelectorAll('input[name="selected_files"]:checked'));
+                if (selectedFiles.length === 0) {
+                    alert('Veuillez sélectionner au moins un fichier');
+                    return false;
+                }
+            }
+
+            return true;
+        } 
+
         // Ajoutez ces écouteurs d'événements
         document.addEventListener('DOMContentLoaded', function() {
             const titleInput = document.getElementById('title');
             titleInput.addEventListener('input', validateTitleFormat);
             titleInput.addEventListener('blur', validateTitleFormat);
+
+            const plexForm = document.getElementById('plexForm');
+            plexForm.addEventListener('submit', validateFileSelection);
         });
 
         function closePlexModal() {
@@ -288,7 +324,13 @@
     
             const formData = new FormData(event.target);
             const data = Object.fromEntries(formData);
-    
+
+            if (data.isDirectory) {
+                const selectedFiles = Array.from(document.querySelectorAll('input[name="selected_files"]:checked'))
+                    .map(checkbox => checkbox.value);
+                data.selected_files = selectedFiles;
+            }
+
             try {
                 const response = await fetch('/create-plex-link/', {
                     method: 'POST',
